@@ -1,61 +1,47 @@
-const canvas = document.getElementById("drawingCanvas");
-const ctx = canvas.getContext("2d");
-resizeCanvas();
+window.onload = function () {
+  const canvas = document.getElementById("drawCanvas");
+  const ctx = canvas.getContext("2d");
+  const colorPicker = document.getElementById("colorPicker");
 
-window.addEventListener('resize', resizeCanvas);
+  let drawing = false;
 
-function resizeCanvas() {
-  // Save drawing if needed
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  canvas.addEventListener("mousedown", () => drawing = true);
+  canvas.addEventListener("mouseup", () => drawing = false);
+  canvas.addEventListener("mouseout", () => drawing = false);
+  canvas.addEventListener("mousemove", draw);
 
-  // Resize
-  canvas.width = canvas.clientWidth;
-  canvas.height = 500;
+  canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    drawing = true;
+    draw(e.touches[0]);
+  });
 
-  // Restore drawing (optional)
-  ctx.putImageData(imageData, 0, 0);
-}
+  canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    drawing = false;
+  });
 
+  canvas.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    if (drawing) {
+      draw(e.touches[0]);
+    }
+  });
 
-let isDrawing = false;
-let brushColor = "#000000";
-let brushSize = 5;
-
-canvas.addEventListener("mousedown", startDraw);
-canvas.addEventListener("mouseup", endDraw);
-canvas.addEventListener("mouseout", endDraw);
-canvas.addEventListener("mousemove", draw);
-
-function startDraw(e) {
-  isDrawing = true;
-  ctx.beginPath();
-  ctx.moveTo(e.offsetX, e.offsetY);
-}
-
-function draw(e) {
-  if (!isDrawing) return;
-
-  ctx.lineTo(e.offsetX, e.offsetY);
-  ctx.strokeStyle = brushColor;
-  ctx.lineWidth = brushSize;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.stroke();
-}
-
-function endDraw() {
-  isDrawing = false;
-}
-
-document.getElementById("colorPicker").addEventListener("input", (e) => {
-  brushColor = e.target.value;
-});
-
-document.getElementById("brushSize").addEventListener("input", (e) => {
-  brushSize = e.target.value;
-});
+  function draw(e) {
+    if (!drawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    ctx.fillStyle = colorPicker.value;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+};
 
 function clearCanvas() {
+  const canvas = document.getElementById("drawCanvas");
+  const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
-
